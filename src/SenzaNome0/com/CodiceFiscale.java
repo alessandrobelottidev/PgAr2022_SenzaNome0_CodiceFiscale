@@ -80,6 +80,8 @@ public class CodiceFiscale {
     }
 
     public static boolean isValido(String codiceFiscale){
+        if (codiceFiscale.length()!=16)
+            return false;
         //controlla che il codice fiscale non abbia all'interno caratteri diversi da lettere o numeri
         for (int i = 0; i < codiceFiscale.length(); i++) {
             boolean letterOrDigit = Character.isLetterOrDigit(codiceFiscale.charAt(i));

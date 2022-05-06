@@ -20,6 +20,7 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.StringWriter;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -39,17 +40,16 @@ public class Main {
         initPersone("./assets/inputPersone.xml");
         initCodiciFiscali("./assets/codiciFiscali.xml");
 
-        //File output = new File("./assets/output.xml");
-        XMLStreamWriter xmlw = initXMLStreamWriter("./assets/output.xml");
+        String outfilename = "./assets/output.xml";
+        XMLStreamWriter xmlw = initXMLStreamWriter();
         if(xmlw!=null) {
             try {
                 xmlw.writeStartElement("output");
                 xmlw.writeStartElement("persone");
-                xmlw.writeAttribute("numero", ""+persone.size());
-
-                for (Persona p: persone){
+                xmlw.writeAttribute("numero", "" + persone.size());
+                for (Persona p : persone) {
                     xmlw.writeStartElement("persona");
-                    xmlw.writeAttribute("id", ""+p.getId());
+                    xmlw.writeAttribute("id", "" + p.getId());
                     xmlw.writeStartElement("nome");
                     xmlw.writeCharacters(p.getNome());
                     xmlw.writeEndElement();
@@ -66,35 +66,45 @@ public class Main {
                     xmlw.writeCharacters("" + p.getNascita());
                     xmlw.writeEndElement();
                     xmlw.writeStartElement("codice_fiscale");
-                    if(!codiciFiscali.remove(p.getCodiceFiscale())) //questa istruzione permette di lasciare in codiciFiscali solo quelli spaiati
+                    if (!codiciFiscali.remove(p.getCodiceFiscale())) //questa istruzione permette di lasciare in codiciFiscali solo quelli spaiati
                         xmlw.writeCharacters("ASSENTE");
                     else
                         xmlw.writeCharacters(p.getCodiceFiscale());
                     xmlw.writeEndElement();
+                    xmlw.writeEndElement(); //</persona>
+                }
+                xmlw.writeEndElement();//</persone>
+
+                xmlw.writeStartElement("codici");
+                xmlw.writeStartElement("invalidi");
+                xmlw.writeAttribute("numero", "" + codiciFiscaliInvalidi.size());
+                for (String c : codiciFiscaliInvalidi) {
+                    xmlw.writeStartElement("codice");
+                    xmlw.writeCharacters(c);
                     xmlw.writeEndElement();
                 }
-                xmlw.writeEndElement();
-                xmlw.writeEndElement();
+                xmlw.writeEndElement();//</invalidi>
+                xmlw.writeStartElement("spaiati");
+                xmlw.writeAttribute("numero", "" + codiciFiscali.size());
+                for (String c : codiciFiscali) {
+                    xmlw.writeStartElement("codice");
+                    xmlw.writeCharacters(c);
+                    xmlw.writeEndElement();
+                }
+                xmlw.writeEndElement();//</spaiati>
+                xmlw.writeEndElement();//</codici>
+                xmlw.writeEndElement();//</output>
                 xmlw.writeEndDocument();
                 xmlw.flush();
                 xmlw.close();
 
-                String output = stringOut.toString();
-
-                System.out.println(toPrettyString(output, 4));
-
+                FileWriter myWriter = new FileWriter(outfilename);
+                myWriter.write(toPrettyString(stringOut.toString(), 4));
+                myWriter.close();
             } catch (Exception e) { // se c’è un errore viene eseguita questa parte
                 System.out.println("Errore nella scrittura");
             }
         }
-
-
-        /*for (Persona p : persone)
-            System.out.println(p.getCodiceFiscale());
-        for (String c: codiciFiscali)
-            System.out.println(c);
-        for (String c: codiciFiscaliInvalidi)
-            System.out.println(c);*/
     }
 
     public static void initPersone(String pathname) {
@@ -149,7 +159,7 @@ public class Main {
         }
     }
 
-    private static XMLStreamWriter initXMLStreamWriter(String filename) {
+    private static XMLStreamWriter initXMLStreamWriter() {
         XMLOutputFactory xmlof = null;
         XMLStreamWriter xmlw = null;
         try {
