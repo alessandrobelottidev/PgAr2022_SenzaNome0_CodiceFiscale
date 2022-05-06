@@ -10,7 +10,7 @@ public class CodiceFiscale {
         codiceFiscale.append(lastChar(codiceFiscale));
         return codiceFiscale.toString();
     }
-    private static StringBuilder charsNominativo(StringBuilder nominativo, boolean isNome) {
+    private static StringBuilder charsNominativo(StringBuilder nominativo, boolean isNome) { //passare true se si vuole calcolare il nome, false se il cognome
         StringBuilder letterine = new StringBuilder();
         for (int i = 0; i < nominativo.length(); i++)
             if (!isVocale(nominativo.charAt(i))) {
@@ -47,8 +47,7 @@ public class CodiceFiscale {
     }
 
     static private final char[] monthCorrispondente = new char[]{'A', 'B', 'C', 'D', 'E', 'H', 'L', 'M', 'P', 'R', 'S', 'T'};
-    static private final int[] daysCorrispondente = new int[]{
-    }
+    static private final int[] daysCorrispondente = new int[]{31,28,31,30,31,30,31,31,30,31,30,31};
 
     private static char charMonth(LocalDate nascita) {
         return monthCorrispondente[nascita.getMonthValue() - 1];
@@ -81,24 +80,84 @@ public class CodiceFiscale {
     }
 
     public static boolean isValido(String codiceFiscale){
-        //boolean letterOrDigit;
+        //controlla che il codice fiscale non abbia all'interno caratteri diversi da lettere o numeri
         for (int i = 0; i < codiceFiscale.length(); i++) {
             boolean letterOrDigit = Character.isLetterOrDigit(codiceFiscale.charAt(i));
             if(!(letterOrDigit))
                 return false;
         }
-        String codCognome = codiceFiscale.substring(0, 4);
-        String codNome = codiceFiscale.substring(3,7);
-        String codGiorno = codiceFiscale.substring(9, 11);
+
+        //divide il codice fiscale per analizzare ogni parte singola
+        String codCognome = codiceFiscale.substring(0, 3);
+        String codNome = codiceFiscale.substring(3,6);
+        String codAnno = codiceFiscale.substring(6,8);
         Character codMese = codiceFiscale.charAt(8);
-        Character codControllo = codiceFiscale.charAt(16);
+        String codGiorno = codiceFiscale.substring(9, 11);
+        Character codLetteraComune = codiceFiscale.charAt(11);
+        String codNumeriComune = codiceFiscale.substring(12,15);
+        Character codControllo = codiceFiscale.charAt(15);
+
+        //controllo che la lettera del mese corrisponda a
         for (int i = 0; i < 12; i++) {
             if (!(codMese==monthCorrispondente[i]))
                 return false;
         }
+        //controlla che il giorno sia scritto in numeri
+        for (int i = 0; i < 2; i++) {
+            if (!('0'<= codGiorno.charAt(i) && codGiorno.charAt(i)<= '9'))
+                return false;
+        }
+        //controlla le lettere del codice del cognome
+        for (int i = 0; i < 3; i++) {
+            if (!('A'<= codNome.charAt(i) && codNome.charAt(i)<= 'Z'))
+                return false;
+        }
+        //controlla le lettere del codice del cognome
+        for (int i = 0; i < 3; i++) {
+            if (!('A'<= codCognome.charAt(i) && codCognome.charAt(i)<= 'Z'))
+                return false;
+        }
 
+        int giorno= Integer.parseInt(codGiorno);
+        //controlla i numeri del codice del giorno
+        if (!(giorno >=1 && giorno<=31||giorno>=41 && giorno<=71))
+            return false;
+        //controlla i numeri del codice dell'anno
+        for (int i = 0; i < 2; i++) {
+            if (!('0'<= codAnno.charAt(i) && codAnno.charAt(i)<= '9'))
+                return false;
+        }
+        //controlla la prima lettera del codice del comune
+        if (!('A'<= codLetteraComune && codLetteraComune<= 'Z'))
+            return false;
+        //controlla i numeri del codice del comune
+        for (int i = 0; i < 3; i++) {
+            if (!('0'<= codNumeriComune.charAt(i) && codNumeriComune.charAt(i)<= '9'))
+                return false;
+        }
+        //controlla la lettera di controllo
+        if (!(codControllo==lastChar(new StringBuilder(codiceFiscale.substring(0, 15)))))
+            return false;
 
-
+        //controlla che il numero del giorno sia presente nei giorni del mese di nascita
+        // (es: se il giorno è 31 ed il mese è febbraio ritorna false)
+        if(giorno >=1 && giorno<=31){
+            for (int i = 0; i < 12; i++) {
+                if (codMese==monthCorrispondente[i]){
+                    if(!(giorno<=daysCorrispondente[i]))
+                        return false;
+                }
+            }
+        }
+        if(giorno >=41 && giorno<=71){
+            for (int i = 0; i < 12; i++) {
+                if (codMese==monthCorrispondente[i]){
+                    if(!(giorno-40<=daysCorrispondente[i]))
+                        return false;
+                }
+            }
+        }
+        return true;
 
     }
 }
