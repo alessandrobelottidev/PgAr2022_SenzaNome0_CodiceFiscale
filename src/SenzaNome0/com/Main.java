@@ -4,17 +4,22 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamWriter;
-import javax.xml.transform.*;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathFactory;
+import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.StringReader;
 import java.io.StringWriter;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -26,6 +31,8 @@ public class Main {
     private final static ArrayList<Persona> persone = new ArrayList<>();
     private final static HashSet<String> codiciFiscali = new HashSet<>();
     private final static LinkedList<String> codiciFiscaliInvalidi = new LinkedList<>();
+
+    private final static StringWriter stringOut = new StringWriter();
 
     public static void main(String[] args){
         Comuni.init_comuni("./assets/comuni.xml");
@@ -71,18 +78,23 @@ public class Main {
                 xmlw.writeEndDocument();
                 xmlw.flush();
                 xmlw.close();
+
+                String output = stringOut.toString();
+
+                System.out.println(toPrettyString(output, 4));
+
             } catch (Exception e) { // se c’è un errore viene eseguita questa parte
                 System.out.println("Errore nella scrittura");
             }
         }
 
 
-        for (Persona p : persone)
+        /*for (Persona p : persone)
             System.out.println(p.getCodiceFiscale());
         for (String c: codiciFiscali)
             System.out.println(c);
         for (String c: codiciFiscaliInvalidi)
-            System.out.println(c);
+            System.out.println(c);*/
     }
 
     public static void initPersone(String pathname) {
@@ -142,7 +154,7 @@ public class Main {
         XMLStreamWriter xmlw = null;
         try {
             xmlof = XMLOutputFactory.newInstance();
-            xmlw = xmlof.createXMLStreamWriter(new FileOutputStream(filename), "utf-8");
+            xmlw = xmlof.createXMLStreamWriter(stringOut);
             xmlw.writeStartDocument("utf-8", "1.0");
         } catch (Exception e) {
             System.out.println("Errore nell'inizializzazione del writer:");
@@ -150,24 +162,41 @@ public class Main {
         }
         return xmlw;
     }
-/*
-    private static String formatXML(String xml) throws TransformerException {
 
-        // write data to xml file
-        TransformerFactory transformerFactory = TransformerFactory.newInstance();
-        Transformer transformer = transformerFactory.newTransformer();
+    public static String toPrettyString(String xml, int indent) {
+        try {
+            // Turn xml string into a document
+            Document document = DocumentBuilderFactory.newInstance()
+                    .newDocumentBuilder()
+                    .parse(new InputSource(new ByteArrayInputStream(xml.getBytes("utf-8"))));
 
-        // pretty print by indention
-        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            // Remove whitespaces outside tags
+            document.normalize();
+            XPath xPath = XPathFactory.newInstance().newXPath();
+            NodeList nodeList = (NodeList) xPath.evaluate("//text()[normalize-space()='']",
+                    document,
+                    XPathConstants.NODESET);
 
-        // add standalone="yes", add line break before the root element
-        transformer.setOutputProperty(OutputKeys.STANDALONE, "yes");
+            for (int i = 0; i < nodeList.getLength(); ++i) {
+                Node node = nodeList.item(i);
+                node.getParentNode().removeChild(node);
+            }
 
-        StreamSource source = new StreamSource(new StringReader(xml));
-        StringWriter output = new StringWriter();
-        transformer.transform(source, new StreamResult(output));
+            // Setup pretty print options
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            transformerFactory.setAttribute("indent-number", indent);
+            Transformer transformer = transformerFactory.newTransformer();
+            transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 
-        return output.toString();
+            // Return pretty print xml string
+            StringWriter stringWriter = new StringWriter();
+            transformer.transform(new DOMSource(document), new StreamResult(stringWriter));
+            return stringWriter.toString();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
-*/
+
 }
