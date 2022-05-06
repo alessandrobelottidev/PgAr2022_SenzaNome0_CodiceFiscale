@@ -1,3 +1,3 @@
 public enum Sesso {
-    M, F;
+    M, F
 }

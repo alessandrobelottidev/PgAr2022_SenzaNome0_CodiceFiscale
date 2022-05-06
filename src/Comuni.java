@@ -6,21 +6,17 @@ import java.io.File;
 import java.io.IOException;
 import org.xml.sax.SAXException;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Comuni {
-    private final ArrayList<Comune> comuni;
+    private static final HashMap<String, String> comuni = new HashMap<>(); // <nome, codice>
 
-    private static Comuni instance = null;
-
-    public Comuni() {
-        comuni = new ArrayList<>();
-
+    public static void init_comuni(String pathname){
         try {
             DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
 
             // Fetch XML File
-            Document document = builder.parse(new File("./assets/comuni.xml"));
+            Document document = builder.parse(new File(pathname));
             document.getDocumentElement().normalize();
 
             //Get all students
@@ -36,7 +32,7 @@ public class Comuni {
 
                     String codice = element.getElementsByTagName("codice").item(0).getTextContent();
 
-                    comuni.add(new Comune(nome, codice));
+                    comuni.put(nome, codice);
                 }
             }
         } catch (ParserConfigurationException | IOException | SAXException e) {
@@ -44,18 +40,9 @@ public class Comuni {
         }
     }
 
-    public static Comuni getInstance() {
-        if (instance == null)
-            instance = new Comuni();
-
-        return instance;
-    }
-
-    // TODO: Creare eccezione apposita
-    public String getCodiceComune(String nome) throws Exception {
-        for (Comune c : comuni)
-            if (c.getNome().equals(nome)) return c.getCodice();
-
-        throw new Exception();
+    public static String getCodiceComune(String comuneNascita) throws ComuneNotFoundException {
+        if(comuni.containsKey(comuneNascita))
+            return comuni.get(comuneNascita);
+        throw new ComuneNotFoundException("comune non trovato");
     }
 }

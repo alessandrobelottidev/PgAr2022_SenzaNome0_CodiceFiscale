@@ -1,4 +1,3 @@
-import java.util.Objects;
 
 public class Comune {
     private String nome, codice;
@@ -27,5 +26,18 @@ public class Comune {
     @Override
     public String toString() {
         return nome;
+    }
+
+    @Override
+    public boolean equals(Object c) {
+        if (this == c) return true;
+        if (!(c instanceof Comune)) return false;
+
+        return codice.equals(((Comune)c).codice);
+    }
+
+    @Override
+    public int hashCode() {
+        return codice != null ? codice.hashCode() : 0;
     }
 }
