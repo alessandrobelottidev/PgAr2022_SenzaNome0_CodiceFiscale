@@ -27,13 +27,13 @@ public class Persona {
         this.id = id;
     }
 
-    public void setNome(StringBuilder nome) throws ComuneNotFoundException {
-        this.nome = nome;
+    public void setNome(String nome) throws ComuneNotFoundException {
+        this.nome = new StringBuilder(nome);
         codiceFiscale=CodiceFiscale.genera(this.nome, this.cognome,this.sesso,this.comune,this.nascita);
     }
 
-    public void setCognome(StringBuilder cognome) throws ComuneNotFoundException {
-        this.cognome = cognome;
+    public void setCognome(String cognome) throws ComuneNotFoundException {
+        this.cognome = new StringBuilder(cognome);
         codiceFiscale=CodiceFiscale.genera(this.nome, this.cognome,this.sesso,this.comune,this.nascita);
     }
 
@@ -52,16 +52,20 @@ public class Persona {
         codiceFiscale=CodiceFiscale.genera(this.nome, this.cognome,this.sesso,this.comune,this.nascita);
     }
 
+    public void setCodiceFiscale(String codiceFiscale) {
+        this.codiceFiscale = codiceFiscale;
+    }
+
     public int getId() {
         return id;
     }
 
-    public StringBuilder getNome() {
-        return nome;
+    public String getNome() {
+        return nome.toString();
     }
 
-    public StringBuilder getCognome() {
-        return cognome;
+    public String getCognome() {
+        return cognome.toString();
     }
 
     public Sesso getSesso() {
