@@ -91,17 +91,23 @@ public class CodiceFiscale {
         String codCognome = codiceFiscale.substring(0, 3);
         String codNome = codiceFiscale.substring(3,6);
         String codAnno = codiceFiscale.substring(6,8);
-        Character codMese = codiceFiscale.charAt(8);
+        char codMese = codiceFiscale.charAt(8);
         String codGiorno = codiceFiscale.substring(9, 11);
-        Character codLetteraComune = codiceFiscale.charAt(11);
+        char codLetteraComune = codiceFiscale.charAt(11);
         String codNumeriComune = codiceFiscale.substring(12,15);
-        Character codControllo = codiceFiscale.charAt(15);
-
+        char codControllo = codiceFiscale.charAt(15);
+        boolean trovato=false;
         //controllo che la lettera del mese corrisponda a
         for (int i = 0; i < 12; i++) {
-            if (!(codMese==monthCorrispondente[i]))
-                return false;
+            if (codMese==monthCorrispondente[i]){
+                trovato=true;
+                break;
+            }
+
+
         }
+        if(!(trovato))
+            return false;
         //controlla che il giorno sia scritto in numeri
         for (int i = 0; i < 2; i++) {
             if (!('0'<= codGiorno.charAt(i) && codGiorno.charAt(i)<= '9'))
@@ -141,22 +147,13 @@ public class CodiceFiscale {
 
         //controlla che il numero del giorno sia presente nei giorni del mese di nascita
         // (es: se il giorno è 31 ed il mese è febbraio ritorna false)
-        if(giorno >=1 && giorno<=31){
-            for (int i = 0; i < 12; i++) {
-                if (codMese==monthCorrispondente[i]){
-                    if(!(giorno<=daysCorrispondente[i]))
-                        return false;
-                }
+        for (int i = 0; i < 12; i++) {
+            if (codMese==monthCorrispondente[i]){
+                if(!(giorno%40<=daysCorrispondente[i]))
+                    return false;
             }
         }
-        if(giorno >=41 && giorno<=71){
-            for (int i = 0; i < 12; i++) {
-                if (codMese==monthCorrispondente[i]){
-                    if(!(giorno-40<=daysCorrispondente[i]))
-                        return false;
-                }
-            }
-        }
+
         return true;
 
     }
