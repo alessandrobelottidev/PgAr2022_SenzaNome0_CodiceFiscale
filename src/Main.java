@@ -47,6 +47,6 @@ public class Main {
         }
 
         for (Persona p : persone)
-            System.out.println(p);
+            System.out.println(p.getCodiceFiscale());
     }
 }
