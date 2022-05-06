@@ -1,31 +1,16 @@
+package SenzaNome0.com;
+
 import java.time.LocalDate;
 
-public class Persona {
-    private final int id;
-    private final StringBuilder nome;
-    private final StringBuilder cognome;
-    private final Sesso sesso;
-    private final Comune comune;
-    private final LocalDate nascita;
-
-    public Persona(int id, String nome, String cognome, Sesso sesso, Comune comune, LocalDate nascita) {
-        this.id = id;
-        this.nome = NominativoNormalizer.normalizza(new StringBuilder(nome.toUpperCase()));
-        this.cognome = NominativoNormalizer.normalizza(new StringBuilder(cognome.toUpperCase()));
-        this.sesso = sesso;
-        this.comune = comune;
-        this.nascita = nascita;
-    }
-
-    public String getCodiceFiscale() {
+public class CodiceFiscale {
+    public static String genera(StringBuilder nome, StringBuilder cognome, Sesso sesso, String comune, LocalDate nascita) throws ComuneNotFoundException {
         StringBuilder codiceFiscale = new StringBuilder();
         codiceFiscale.append(charsNominativo(cognome, false)).append(charsNominativo(nome, true));
-        codiceFiscale.append(charsYear()).append(charMonth()).append(charsDay()).append(comune.getCodice());
+        codiceFiscale.append(charsYear(nascita)).append(charMonth(nascita)).append(charsDay(nascita, sesso)).append(Comuni.getCodiceComune(comune));
         codiceFiscale.append(lastChar(codiceFiscale));
         return codiceFiscale.toString();
     }
-
-    private StringBuilder charsNominativo(StringBuilder nominativo, boolean isNome) {
+    private static StringBuilder charsNominativo(StringBuilder nominativo, boolean isNome) {
         StringBuilder letterine = new StringBuilder();
         for (int i = 0; i < nominativo.length(); i++)
             if (!isVocale(nominativo.charAt(i))) {
@@ -50,30 +35,33 @@ public class Persona {
         return letterine;
     }
 
-    private boolean isVocale(char c) {
+    private static boolean isVocale(char c) {
         return c == 'A' || c == 'E' || c == 'I' ||
                 c == 'O' || c == 'U';
     }
 
-    private String charsYear() {
+    private static String charsYear(LocalDate nascita) {
         int n = nascita.getYear() % 100;
         return (n < 10 ? "0" : "") + n;
+
     }
 
     static private final char[] monthCorrispondente = new char[]{'A', 'B', 'C', 'D', 'E', 'H', 'L', 'M', 'P', 'R', 'S', 'T'};
+    static private final int[] daysCorrispondente = new int[]{
+    }
 
-    private char charMonth() {
+    private static char charMonth(LocalDate nascita) {
         return monthCorrispondente[nascita.getMonthValue() - 1];
     }
 
-    private String charsDay() {
+    private static String charsDay(LocalDate nascita, Sesso sesso) {
         int n = nascita.getDayOfMonth() + (sesso.equals(Sesso.F) ? 40 : 0);
         return (n < 10 ? "0" : "") + n;
     }
 
     static private final int[] conversionePosDispari = new int[]{1, 0, 5, 7, 9, 13, 15, 17, 19, 21, 2, 4, 18, 20, 11, 3, 6, 8, 12, 14, 16, 10, 22, 25, 24, 23};
 
-    private char lastChar(StringBuilder codiceFiscale) {
+    private static char lastChar(StringBuilder codiceFiscale) {
         int sum = 0;
         for (int i = 1; i < codiceFiscale.length(); i += 2) {
             if (codiceFiscale.charAt(i) >= '0' && codiceFiscale.charAt(i) <= '9')
@@ -90,5 +78,27 @@ public class Persona {
         }
 
         return (char) ('A' + sum % 26);
+    }
+
+    public static boolean isValido(String codiceFiscale){
+        //boolean letterOrDigit;
+        for (int i = 0; i < codiceFiscale.length(); i++) {
+            boolean letterOrDigit = Character.isLetterOrDigit(codiceFiscale.charAt(i));
+            if(!(letterOrDigit))
+                return false;
+        }
+        String codCognome = codiceFiscale.substring(0, 4);
+        String codNome = codiceFiscale.substring(3,7);
+        String codGiorno = codiceFiscale.substring(9, 11);
+        Character codMese = codiceFiscale.charAt(8);
+        Character codControllo = codiceFiscale.charAt(16);
+        for (int i = 0; i < 12; i++) {
+            if (!(codMese==monthCorrispondente[i]))
+                return false;
+        }
+
+
+
+
     }
 }

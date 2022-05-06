@@ -1,3 +1,7 @@
+package SenzaNome0.com;
+
+import SenzaNome0.com.Comuni;
+import SenzaNome0.com.Persona;
 import org.w3c.dom.*;
 import javax.xml.parsers.*;
 import java.io.*;
